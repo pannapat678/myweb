@@ -12,11 +12,9 @@
 body{
   margin:0;
   font-family:Arial, sans-serif;
-
   background:
   linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
   url("bg.jpg");
-
   background-size:cover;
   background-position:center;
   min-height:100vh;
@@ -75,7 +73,6 @@ button:hover{
   padding:20px;
   border-radius:15px;
   box-shadow:0 5px 15px rgba(0,0,0,0.2);
-
   word-wrap:break-word;
 }
 
@@ -115,80 +112,94 @@ button:hover{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-getFirestore, collection, addDoc, onSnapshot,
-deleteDoc, doc, updateDoc
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyBfFw1L6m-oSbNeDgScGaP4a3VdxDPTzgY",
-authDomain: "lost-itaem.firebaseapp.com",
-projectId: "lost-itaem",
-storageBucket: "lost-itaem.appspot.com"
+  apiKey: "AIzaSyBfFw1L6m-oSbNeDgScGaP4a3VdxDPTzgY",
+  authDomain: "lost-itaem.firebaseapp.com",
+  projectId: "lost-itaem",
+  storageBucket: "lost-itaem.appspot.com"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.send = async function(){
-const type = document.getElementById("type");
-const phone = document.getElementById("phone");
-const date = document.getElementById("date");
-const locationInput = document.getElementById("location");
+/* ส่งข้อมูล */
+window.send = async function () {
+  const type = document.getElementById("type");
+  const phone = document.getElementById("phone");
+  const date = document.getElementById("date");
+  const locationInput = document.getElementById("location");
 
-if(!type.value.trim() || !phone.value.trim() || !date.value || !locationInput.value.trim()){
-alert("กรอกข้อมูลให้ครบ");
-return;
-}
+  if (
+    !type.value.trim() ||
+    !phone.value.trim() ||
+    !date.value ||
+    !locationInput.value.trim()
+  ) {
+    alert("กรอกข้อมูลให้ครบ");
+    return;
+  }
 
-await addDoc(collection(db,"lost_items"),{
-type: type.value.trim(),
-phone: phone.value.trim(),
-date: date.value,
-location: locationInput.value.trim(),
-status: "lost",
-time: new Date().toLocaleString()
-});
+  await addDoc(collection(db, "lost_items"), {
+    type: type.value.trim(),
+    phone: phone.value.trim(),
+    date: date.value,
+    location: locationInput.value.trim(),
+    status: "lost",
+    time: new Date().toLocaleString()
+  });
 
-type.value="";
-phone.value="";
-date.value="";
-locationInput.value="";
-}
+  type.value = "";
+  phone.value = "";
+  date.value = "";
+  locationInput.value = "";
+};
 
-window.del = async function(id){
-await deleteDoc(doc(db,"lost_items",id));
-}
+/* ลบ */
+window.del = async function (id) {
+  await deleteDoc(doc(db, "lost_items", id));
+};
 
-window.found = async function(id){
-await updateDoc(doc(db,"lost_items",id),{
-status:"found"
-});
-}
+/* เจอแล้ว */
+window.found = async function (id) {
+  await updateDoc(doc(db, "lost_items", id), {
+    status: "found"
+  });
+};
 
 const list = document.getElementById("list");
 
-onSnapshot(collection(db,"lost_items"), snap=>{
-list.innerHTML="";
+/* โหลดข้อมูล realtime */
+onSnapshot(collection(db, "lost_items"), (snap) => {
+  list.innerHTML = "";
 
-snap.forEach(docSnap=>{
-let d = docSnap.data();
-let status = d.status || "lost";
+  snap.forEach((docSnap) => {
+    let d = docSnap.data();
+    let status = d.status || "lost";
 
-list.innerHTML += `
-<div class="card">
-<span class="badge ${status}">${status}</span><br><br>
+    list.innerHTML += `
+      <div class="card">
+        <span class="badge ${status}">${status}</span><br><br>
 
-📦 ${d.type}<br>
-📞 ${d.phone}<br>
-📅 ${d.date}<br>
-📍 ${d.location}<br>
-⏰ ${d.time}<br><br>
+        📦 ${d.type}<br>
+        📞 ${d.phone}<br>
+        📅 ${d.date}<br>
+        📍 ${d.location}<br>
+        ⏰ ${d.time}<br><br>
 
-<button onclick="found('${docSnap.id}')">✔ เจอแล้ว</button>
-<button onclick="del('${docSnap.id}')">🗑 ลบ</button>
-</div>
-`;
-});
+        <button onclick="found('${docSnap.id}')">✔ เจอแล้ว</button>
+        <button onclick="del('${docSnap.id}')">🗑 ลบ</button>
+      </div>
+    `;
+  });
 });
 </script>
 
