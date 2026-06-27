@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Lost System</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial;
+
+  background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+  url("bg.jpg");
+
+  background-size:cover;
+  background-position:center;
+  min-height:100vh;
+}
+
+/* ฟอร์ม */
+.box{
+  max-width:500px;
+  width:90%;
+  margin:20px auto;
+  background:white;
+  padding:15px;
+  border-radius:10px;
+}
+
+/* input / button */
+input,button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+}
+
+/* การ์ดข้อมูล */
+.card{
+  background:white;
+  width:90%;
+  max-width:500px;
+  margin:10px auto;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.2);
+
+  word-wrap:break-word;
+  overflow-wrap:break-word;
+}
+
+/* badge */
+.badge{
+  padding:3px 8px;
+  border-radius:8px;
+  font-size:12px;
+  color:white;
+}
+
+.lost{background:#f59e0b;}
+.found{background:#22c55e;}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>📢 แจ้งของหาย</h2>
+
+<input id="type" placeholder="ลักษณะของ">
+<input id="phone" placeholder="ช่องทางติดต่อ">
+<input type="date" id="date">
+<input id="location" placeholder="สถานที่หาย">
+
+<button onclick="send()">ส่งข้อมูล</button>
+</div>
+
+<div id="list"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+getFirestore, collection, addDoc, onSnapshot,
+deleteDoc, doc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* 🔥 Firebase Config */
+const firebaseConfig = {
+apiKey: "AIzaSyBfFw1L6m-oSbNeDgScGaP4a3VdxDPTzgY",
+authDomain: "lost-itaem.firebaseapp.com",
+projectId: "lost-itaem",
+storageBucket: "lost-itaem.appspot.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* 📤 SEND */
+window.send = async function(){
+
+const type = document.getElementById("type");
+const phone = document.getElementById("phone");
+const date = document.getElementById("date");
+const locationInput = document.getElementById("location");
+
+if(!type.value.trim() || !phone.value.trim() || !date.value || !locationInput.value.trim()){
+alert("กรอกข้อมูลให้ครบ");
+return;
+}
+
+await addDoc(collection(db,"lost_items"),{
+type: type.value.trim(),
+phone: phone.value.trim(),
+date: date.value,
+location: locationInput.value.trim(),
+status: "lost",
+time: new Date().toLocaleString()
+});
+
+type.value="";
+phone.value="";
+date.value="";
+locationInput.value="";
+}
+
+/* 🗑 DELETE */
+window.del = async function(id){
+await deleteDoc(doc(db,"lost_items",id));
+}
+
+/* ✔ FOUND */
+window.found = async function(id){
+await updateDoc(doc(db,"lost_items",id),{
+status:"found"
+});
+}
+
+/* 🔍 SEARCH */
+window.filter = function(){
+let val = document.getElementById("search").value.toLowerCase();
+document.querySelectorAll(".card").forEach(c=>{
+c.style.display = c.innerText.toLowerCase().includes(val)
+? "block":"none";
+});
+}
+
+/* 🔄 REALTIME */
+const list = document.getElementById("list");
+
+onSnapshot(collection(db,"lost_items"), snap=>{
+list.innerHTML="";
+
+snap.forEach(docSnap=>{
+let d = docSnap.data();
+let status = d.status || "lost";
+
+list.innerHTML += `
+<div class="card">
+<span class="badge ${status}">${status}</span><br><br>
+
+📦 ${d.type || "-"}<br>
+📞 ${d.phone || "-"}<br>
+📅 ${d.date || "-"}<br>
+📍 ${d.location || "-"}<br>
+⏰ ${d.time || "-"}<br><br>
+
+<button onclick="found('${docSnap.id}')">✔ เจอแล้ว</button>
+<button onclick="del('${docSnap.id}')">🗑 ลบ</button>
+</div>
+`;
+});
+});
+
+</script>
+
+</body>
+</html>
