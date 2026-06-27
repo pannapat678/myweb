@@ -5,47 +5,95 @@
 <title>Lost System</title>
 
 <style>
+*{
+  box-sizing:border-box;
+}
+
 body{
   margin:0;
-  font-family:Arial;
-  min-height:100vh;
-  background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+  font-family:Arial, sans-serif;
+
+  background:
+  linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
   url("bg.jpg");
+
   background-size:cover;
   background-position:center;
+  min-height:100vh;
 }
 
+/* กล่องฟอร์ม */
 .box{
-  max-width:500px;
   width:90%;
-  margin:20px auto;
+  max-width:500px;
+  margin:40px auto;
   background:white;
-  padding:15px;
-  border-radius:10px;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.25);
 }
 
-input,button{
+/* หัวข้อ */
+h2{
+  margin-top:0;
+  margin-bottom:20px;
+}
+
+/* input */
+input{
   width:100%;
-  padding:10px;
-  margin-top:10px;
-}
-
-.card{
-  background:white;
-  width:90%;
-  max-width:500px;
-  margin:10px auto;
-  padding:15px;
-  border-radius:10px;
-}
-
-.badge{
-  padding:3px 8px;
+  padding:14px;
+  margin-top:12px;
+  border:1px solid #ccc;
   border-radius:8px;
+  font-size:16px;
+}
+
+/* button */
+button{
+  width:100%;
+  padding:14px;
+  margin-top:15px;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+  background:#2563eb;
   color:white;
 }
-.lost{background:#f59e0b;}
-.found{background:#22c55e;}
+
+button:hover{
+  opacity:0.9;
+}
+
+/* card */
+.card{
+  width:90%;
+  max-width:500px;
+  margin:15px auto;
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+
+  word-wrap:break-word;
+}
+
+/* badge */
+.badge{
+  padding:4px 10px;
+  border-radius:8px;
+  color:white;
+  font-size:13px;
+}
+
+.lost{
+  background:#f59e0b;
+}
+
+.found{
+  background:#22c55e;
+}
 </style>
 </head>
 
@@ -65,17 +113,10 @@ input,button{
 <div id="list"></div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot,
-  deleteDoc,
-  doc,
-  updateDoc
+getFirestore, collection, addDoc, onSnapshot,
+deleteDoc, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -94,18 +135,18 @@ const phone = document.getElementById("phone");
 const date = document.getElementById("date");
 const locationInput = document.getElementById("location");
 
-if(!type.value || !phone.value || !date.value || !locationInput.value){
+if(!type.value.trim() || !phone.value.trim() || !date.value || !locationInput.value.trim()){
 alert("กรอกข้อมูลให้ครบ");
 return;
 }
 
 await addDoc(collection(db,"lost_items"),{
-type:type.value,
-phone:phone.value,
-date:date.value,
-location:locationInput.value,
-status:"lost",
-time:new Date().toLocaleString()
+type: type.value.trim(),
+phone: phone.value.trim(),
+date: date.value,
+location: locationInput.value.trim(),
+status: "lost",
+time: new Date().toLocaleString()
 });
 
 type.value="";
@@ -128,12 +169,15 @@ const list = document.getElementById("list");
 
 onSnapshot(collection(db,"lost_items"), snap=>{
 list.innerHTML="";
+
 snap.forEach(docSnap=>{
 let d = docSnap.data();
+let status = d.status || "lost";
 
 list.innerHTML += `
 <div class="card">
-<span class="badge ${d.status}">${d.status}</span><br><br>
+<span class="badge ${status}">${status}</span><br><br>
+
 📦 ${d.type}<br>
 📞 ${d.phone}<br>
 📅 ${d.date}<br>
@@ -146,7 +190,6 @@ list.innerHTML += `
 `;
 });
 });
-
 </script>
 
 </body>
